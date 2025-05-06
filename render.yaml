@@ -2,9 +2,17 @@ services:
   - type: web
     name: whatsapp-expense-bot
     env: node
-    buildCommand: npm install
+    buildCommand: |
+      apt-get update && apt-get install -y chromium
+      npm install
     startCommand: node index.js
     envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: "true"
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium
       - key: SHEET_ID
         sync: false
       - key: GROUP_NAME
