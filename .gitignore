@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Google credentials
+credentials.json
+
+# WhatsApp session data
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db 

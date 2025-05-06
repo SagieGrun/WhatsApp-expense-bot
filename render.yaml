@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: whatsapp-expense-bot
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: SHEET_ID
+        sync: false
+      - key: GROUP_NAME
+        sync: false 
