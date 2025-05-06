@@ -2,7 +2,22 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { google } = require('googleapis');
 const fs = require('fs');
+const express = require('express');
 require('dotenv').config();
+
+// Create Express app
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.send('WhatsApp bot is running!');
+});
+
+// Start Express server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
 // Load env vars
 const SHEET_ID = process.env.SHEET_ID;
@@ -20,7 +35,17 @@ const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+      '--disable-gpu'
+    ],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null
   },
 });
 
