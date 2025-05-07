@@ -7,7 +7,7 @@ require('dotenv').config();
 
 // Create Express app
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -43,9 +43,16 @@ const client = new Client({
       '--no-first-run',
       '--no-zygote',
       '--single-process',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-software-rasterizer',
+      '--disable-features=site-per-process',
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process'
     ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+    ignoreHTTPSErrors: true,
+    timeout: 60000
   },
 });
 
