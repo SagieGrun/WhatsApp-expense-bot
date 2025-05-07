@@ -40,4 +40,6 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Start the application
-CMD ["node", "index.js"] 
+CMD ["node", "index.js"]
+
+RUN which chromium || which chromium-browser || which google-chrome || ls -l /usr/bin/ 
