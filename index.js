@@ -205,6 +205,8 @@ client.on('message_create', async (msg) => {
     });
 
     console.log(`💾 Successfully saved to sheet: ${sender} - ${item} - $${amount} - ${category} - Running Sum: $${runningSum + parseFloat(amount)}`);
+    // Send confirmation reply
+    msg.reply('Registered!');
   } catch (err) {
     console.error('❌ Error processing message:', err);
     console.error('Error details:', {
