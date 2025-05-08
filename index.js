@@ -39,18 +39,13 @@ const client = new Client({
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
       '--no-first-run',
       '--no-zygote',
       '--single-process',
-      '--disable-gpu',
-      '--disable-extensions',
-      '--disable-software-rasterizer',
-      '--disable-features=site-per-process',
-      '--disable-web-security',
-      '--disable-features=IsolateOrigins,site-per-process'
+      '--disable-extensions'
     ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
     ignoreHTTPSErrors: true,
     timeout: 60000
   },
