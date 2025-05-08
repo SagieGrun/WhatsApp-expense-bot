@@ -3,6 +3,7 @@ const qrcode = require('qrcode-terminal');
 const { google } = require('googleapis');
 const fs = require('fs');
 const express = require('express');
+const QRCode = require('qrcode');
 require('dotenv').config();
 
 // Create Express app
@@ -51,7 +52,23 @@ const client = new Client({
   },
 });
 
+let latestQR = null; // Store the latest QR code string
+
+// Add /qr endpoint to serve QR code as PNG
+app.get('/qr', async (req, res) => {
+  if (!latestQR) {
+    return res.status(404).send('No QR code available.');
+  }
+  try {
+    res.setHeader('Content-Type', 'image/png');
+    await QRCode.toFileStream(res, latestQR, { type: 'png', width: 300 });
+  } catch (err) {
+    res.status(500).send('Failed to generate QR code image.');
+  }
+});
+
 client.on('qr', (qr) => {
+  latestQR = qr; // Store the latest QR string
   console.log('Scan this QR code with your WhatsApp:');
   qrcode.generate(qr, { small: true });
 });
