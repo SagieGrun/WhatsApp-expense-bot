@@ -112,6 +112,9 @@ function getFriendlySenderName(number) {
 
 client.on('message_create', async (msg) => {
   try {
+    // Ignore messages sent by the bot itself
+    if (msg.fromMe) return;
+
     console.log('📨 Received message:', {
       from: msg.from,
       body: msg.body,
@@ -141,73 +144,78 @@ client.on('message_create', async (msg) => {
     const text = msg.body.trim();
     console.log('📝 Processing message:', text);
 
-    // Match both formats with multi-word descriptions:
-    // "900 hamburgers at restaurant" or "hamburgers at restaurant 900"
-    const match = text.match(/^(?:(\d+(?:\.\d{1,2})?)\s+(.+)|(.+?)\s+(\d+(?:\.\d{1,2})?))$/);
-    if (!match) {
-      console.log('❌ Message format does not match expected pattern');
-      msg.reply('Please use the format: Description Amount (e.g., Dinner 120)');
-      return;
+    // Handle multi-line messages
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+    let results = [];
+    for (const line of lines) {
+      // Match both formats with multi-word descriptions:
+      // "900 hamburgers at restaurant" or "hamburgers at restaurant 900"
+      const match = line.match(/^(?:(\d+(?:\.\d{1,2})?)\s+(.+)|(.+?)\s+(\d+(?:\.\d{1,2})?))$/);
+      if (!match) {
+        results.push(`❌ Invalid format: "${line}"`);
+        continue;
+      }
+
+      // Extract amount and item based on which pattern matched
+      let amount, item;
+      if (match[1]) { // Amount first format: "900 hamburgers at restaurant"
+        amount = match[1];
+        item = match[2].trim(); // Trim any extra spaces
+      } else { // Amount last format: "hamburgers at restaurant 900"
+        amount = match[4];
+        item = match[3].trim(); // Trim any extra spaces
+      }
+
+      // Capitalize first letter of each word in description
+      item = item.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+      // Infer category
+      const category = inferCategory(item);
+      console.log('📊 Parsed message:', { amount, item, category });
+
+      // Format timestamp to be more readable
+      const now = new Date();
+      const timestamp = now.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+
+      // Get current month in YYYY-MM format
+      const month = now.toISOString().slice(0, 7); // e.g., "2024-05"
+      const monthName = now.toLocaleString('default', { month: 'long' }); // e.g., "May"
+
+      // Get sender's name
+      const contact = await msg.getContact();
+      const sender = getFriendlySenderName(contact.number);
+
+      // Ensure month sheet exists
+      await ensureMonthSheetExists(month, monthName);
+
+      // Calculate running sum for the current month
+      const runningSum = await calculateRunningSum(month);
+
+      // Write to Google Sheets
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: SHEET_ID,
+        range: `${monthName}!A1`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [[timestamp, sender, item, parseFloat(amount), category, runningSum + parseFloat(amount)]],
+        },
+      });
+
+      console.log(`💾 Successfully saved to sheet: ${sender} - ${item} - $${amount} - ${category} - Running Sum: $${runningSum + parseFloat(amount)}`);
+      results.push(`✅ Registered: ${item} - $${amount} - ${category}`);
     }
-
-    // Extract amount and item based on which pattern matched
-    let amount, item;
-    if (match[1]) { // Amount first format: "900 hamburgers at restaurant"
-      amount = match[1];
-      item = match[2].trim(); // Trim any extra spaces
-    } else { // Amount last format: "hamburgers at restaurant 900"
-      amount = match[4];
-      item = match[3].trim(); // Trim any extra spaces
-    }
-
-    // Capitalize first letter of each word in description
-    item = item.split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-
-    // Infer category
-    const category = inferCategory(item);
-    console.log('📊 Parsed message:', { amount, item, category });
-
-    // Format timestamp to be more readable
-    const now = new Date();
-    const timestamp = now.toLocaleString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-
-    // Get current month in YYYY-MM format
-    const month = now.toISOString().slice(0, 7); // e.g., "2024-05"
-    const monthName = now.toLocaleString('default', { month: 'long' }); // e.g., "May"
-
-    // Get sender's name
-    const contact = await msg.getContact();
-    const sender = getFriendlySenderName(contact.number);
-
-    // Ensure month sheet exists
-    await ensureMonthSheetExists(month, monthName);
-
-    // Calculate running sum for the current month
-    const runningSum = await calculateRunningSum(month);
-
-    // Write to Google Sheets
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SHEET_ID,
-      range: `${monthName}!A1`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [[timestamp, sender, item, parseFloat(amount), category, runningSum + parseFloat(amount)]],
-      },
-    });
-
-    console.log(`💾 Successfully saved to sheet: ${sender} - ${item} - $${amount} - ${category} - Running Sum: $${runningSum + parseFloat(amount)}`);
-    // Send confirmation reply
-    msg.reply('Registered!');
+    // Send a summary reply
+    msg.reply(results.join('\n'));
   } catch (err) {
     console.error('❌ Error processing message:', err);
     console.error('Error details:', {
