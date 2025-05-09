@@ -25,8 +25,9 @@ const SHEET_ID = process.env.SHEET_ID;
 const GROUP_NAME = process.env.GROUP_NAME;
 
 // === Google Sheets Setup ===
+const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
 const auth = new google.auth.GoogleAuth({
-  keyFile: 'credentials.json',
+  credentials,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 const sheets = google.sheets({ version: 'v4', auth });
