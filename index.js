@@ -112,8 +112,11 @@ function getFriendlySenderName(number) {
 
 client.on('message_create', async (msg) => {
   try {
-    // Ignore messages sent by the bot itself
-    if (msg.fromMe) return;
+    // Ignore only messages that look like bot replies
+    if (
+      msg.body.startsWith('✅ Registered:') ||
+      msg.body.startsWith('❌ Invalid format:')
+    ) return;
 
     console.log('📨 Received message:', {
       from: msg.from,
