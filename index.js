@@ -217,8 +217,12 @@ client.on('message_create', async (msg) => {
       console.log(`💾 Successfully saved to sheet: ${sender} - ${item} - $${amount} - ${category} - Running Sum: $${runningSum + parseFloat(amount)}`);
       results.push(`✅ Registered: ${item} - $${amount} - ${category}`);
     }
-    // Send a summary reply
-    msg.reply(results.join('\n'));
+    // Send a thumbs up reaction if all lines were valid, otherwise reply with the results
+    if (results.every(line => line.startsWith('✅ Registered:'))) {
+      await msg.react('👍');
+    } else {
+      msg.reply(results.join('\n'));
+    }
   } catch (err) {
     console.error('❌ Error processing message:', err);
     console.error('Error details:', {
