@@ -118,6 +118,12 @@ client.on('message_create', async (msg) => {
       msg.body.startsWith('❌ Invalid format:')
     ) return;
 
+    // Validate message object
+    if (!msg || !msg.from || !msg.body) {
+      console.log('❌ Invalid message object, skipping');
+      return;
+    }
+
     console.log('📨 Received message:', {
       from: msg.from,
       body: msg.body,
@@ -125,21 +131,40 @@ client.on('message_create', async (msg) => {
       fromMe: msg.fromMe
     });
 
-    const chat = await msg.getChat();
+    // Try to get chat info with error handling
+    let chat;
+    let isGroup;
+    let chatName = '';
+    
+    try {
+      chat = await msg.getChat();
+      isGroup = chat.isGroup;
+      chatName = chat.name || '';
+    } catch (error) {
+      console.log('⚠️ Failed to get chat info, using fallback method:', error.message);
+      // Fallback: determine if it's a group by the ID format
+      isGroup = msg.from.endsWith('@g.us');
+      chatName = 'Unknown'; // We can't get the name without getChat()
+    }
+
     console.log('💬 Chat details:', {
-      name: chat.name,
-      isGroup: chat.isGroup,
+      name: chatName,
+      isGroup: isGroup,
       expectedGroup: GROUP_NAME,
-      matches: chat.name === GROUP_NAME
+      matches: chatName === GROUP_NAME
     });
 
-    // Only respond in the specified group
-    if (!chat.isGroup) {
+    // Only respond in group chats
+    if (!isGroup) {
       console.log('❌ Not a group chat, ignoring');
       return;
     }
     
-    if (chat.name !== GROUP_NAME) {
+    // If we couldn't get the chat name, we can't verify it's the right group
+    // In this case, we'll process the message but log a warning
+    if (chatName === 'Unknown') {
+      console.log('⚠️ Could not verify group name, processing message anyway');
+    } else if (chatName !== GROUP_NAME) {
       console.log('❌ Not the target group, ignoring');
       return;
     }
