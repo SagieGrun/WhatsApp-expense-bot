@@ -160,10 +160,10 @@ client.on('message_create', async (msg) => {
       return;
     }
     
-    // If we couldn't get the chat name, we can't verify it's the right group
-    // In this case, we'll process the message but log a warning
+    // If we couldn't get the chat name, we can't verify it's the right group - ignore for safety
     if (chatName === 'Unknown') {
-      console.log('⚠️ Could not verify group name, processing message anyway');
+      console.log('❌ Could not verify group name, ignoring message for safety');
+      return;
     } else if (chatName !== GROUP_NAME) {
       console.log('❌ Not the target group, ignoring');
       return;
