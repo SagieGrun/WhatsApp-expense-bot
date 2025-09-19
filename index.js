@@ -103,11 +103,19 @@ function inferCategory(description) {
 
 // Function to get friendly sender name
 function getFriendlySenderName(number) {
-  const senderMap = {
-    '972526773723': 'Sagie',
-    '972544806500': 'Tany'
-  };
-  return senderMap[number] || number;
+  // Parse sender mapping from environment variable
+  const senderMapping = process.env.SENDER_MAPPING;
+  if (!senderMapping) {
+    return number; // Return original number if no mapping configured
+  }
+  
+  try {
+    const senderMap = JSON.parse(senderMapping);
+    return senderMap[number] || number;
+  } catch (error) {
+    console.error('Error parsing SENDER_MAPPING:', error);
+    return number;
+  }
 }
 
 client.on('message_create', async (msg) => {
