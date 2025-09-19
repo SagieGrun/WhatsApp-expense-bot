@@ -63,7 +63,7 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON={"type":"service_account",...}
 GROUP_NAME=your_whatsapp_group_name_here
 
 # Sender Name Mapping (optional)
-SENDER_MAPPING={"972526773723":"Sagie","972544806500":"Tany"}
+SENDER_MAPPING={"1234567890":"John","0987654321":"Jane"}
 ```
 
 **How to get these values:**
@@ -317,7 +317,7 @@ The bot creates monthly sheets with the following columns:
 | Column | Description | Example |
 |--------|-------------|---------|
 | **Timestamp** | When the expense was logged | `25/12/2024, 14:30:15` |
-| **Sender** | Who sent the message | `Sagie` |
+| **Sender** | Who sent the message | `John` |
 | **Description** | Expense description | `Groceries At Store` |
 | **Amount** | Expense amount | `50` |
 | **Category** | Auto-categorized | `Groceries` |
